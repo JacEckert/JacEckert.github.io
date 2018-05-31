@@ -1,9 +1,28 @@
-//database: store starting time, players(name + score), letterBank, used words
+/* 
+{
+	"gameData": {
+		"startTime": 0,
+		"letterBank": "asdf"
+	},
+	"players": {
+		"PlayerOne": {"score": 0},
+		"PlayerTwo": { ... },
+		"PlayerThree": { ... }
+	},
+	"words": [ "word 1", ... ]
+}
+*/
+
+//////////////
+// Database //
+//////////////
+var database = firebase.database();
+var letterBank;
 
 ////////////////
 // Timer Data //
 ////////////////
-var time;
+var time = 0;
 var timerInterval;
 
 /////////////////
@@ -11,13 +30,17 @@ var timerInterval;
 /////////////////
 var player;
 var playerScore = 0;
-var letterBank;
 
 //checks for existing user, displays error if exists
 	//or populates user display and removes name input
 function createUser() {
 	player = document.getElementById("user").value;
 //database: if username taken: announce; else add
+
+//add user
+database.ref('players/' + player).set({score : 0});
+
+
 	document.getElementById("username").innerHTML = player;
 	toggle("username");
 	document.getElementById("start").disabled = false;
@@ -28,25 +51,28 @@ function createUser() {
 function startGame() {
 	toggle("start");
 	toggle("game");
-
-	///////////////////////////////////////////////	Temporary
-	var startTime = new Date().getTime() + 15000;//	 Testing
-	///////////////////////////////////////////////	  Value
 	
 	//time given in milliseconds, divide by 1000 to translate to seconds
 		//and floor to remove insignificant digits
-//database: get start time
-	time = Math.floor((startTime - new Date().getTime())/1000);
+//database: check if game data exists
 	
-	//if not started
+	//if no
 	if(time <= 0) {
+		time = 60;
 		letterBank = generateBank();
 //database: set start time, set bank
+		database.ref('gameData/').set({startTime : new Date().getTime(), letterBank: letterBank});
 	} else {
-//database: get Bank
+//database: get time, get Bank
+	///////////////////////////////////////////////	Temporary
+		var startTime = new Date().getTime() + 15000;//	 Testing
+	///////////////////////////////////////////////	  Value
+		
 	////////////////////////////////////////////	Temporary
 		letterBank = "SOMETHING";			  //	 Testing
 	////////////////////////////////////////////	  Value
+	
+		time = Math.floor((startTime - new Date().getTime())/1000);
 	}
 	document.getElementById("letterBank").innerHTML = letterBank;
 	timerInterval = setInterval("gameTimer()", 1000);
@@ -85,7 +111,7 @@ function gameTimer() {
 //hides game, updates user data in database, gets user data, and displays outcome
 function endGame() {
 	toggle("gameContainer");
-	sendResults();
+	database.ref('players/' + player).set({score : 0});
 	getResults();
 	toggle("outcome");
 }
@@ -125,10 +151,6 @@ function isValid(word) {
 	return true;
 }
 
-//updates user data in the database
-function sendResults() {
-//database: send player name and score
-}
 
 //retrieves user data from the database and updates outcome display
 function getResults() {
@@ -156,4 +178,10 @@ function toggle(ID) {
 		e.style.display = "block";
 	else
 		e.style.display = "none";
+}
+
+function clearData(){
+	database.ref('gameData' ).remove();
+	database.ref('players' ).remove();
+	database.ref('words' ).remove();
 }
