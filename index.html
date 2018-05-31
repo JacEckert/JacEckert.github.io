@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<link rel="stylesheet" href="/styles.css">
+	</head>
+	
+	<body>
+		<div id="scrambleRace">
+			<h1>Scramble Race</h1>
+			
+			<div id="rules">
+				<h2>Rules</h2>
+				<ol>
+					<li> Use the nine given letters to generate words </li>
+					<li> Each word can only use each letter once </li>
+					<li> Only the first player to submit a word gets the points </li>
+					<li> Points are given for each letter in a word </li>
+					<li> The game lasts 60 seconds, so think and type quickly!</li>
+				</ol>
+			</div>
+			
+			<h2 id="announce" class="hidden"></h2>
+			
+			<div id="gameContainer">
+				<h2 id="username" class="hidden">Username</h2>
+				<div id="nameInput">
+					<input id="user">
+					<button onclick="createUser()">Set Name</button>
+				</div>
+				<button id="start" onclick="startGame()" disabled>Start/Join</button>
+				<div id="game" class="hidden">
+				
+					<div id="gameData">
+						<span>Score: </span>
+						<span id="score">0</span>
+						<span>Time Left: </span>
+						<span id="timer"></span><br>
+						<span id="letterBank"></span>
+					</div>
+				
+					<div id="wordInput">
+						<input id="word">
+						<button type="button" onclick="submitWord()">Submit Word</button>
+					</div>
+				</div>
+			</div>
+			
+			<div id="outcome" class="hidden">
+				<h3 id="winScore">Winning Score: </h3>
+				<h3 id="playerScore">Your Score: </h3>
+			</div>
+			
+		</div>
+	</body>
+</html>
+
+<script src="scripts.js"></script>
