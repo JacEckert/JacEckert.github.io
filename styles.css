@@ -1,0 +1,48 @@
+body {
+	background-color: powderblue;
+}
+
+#scrambleRace {
+	border: 1px solid black;
+	background-color: grey;
+	
+	width: 800px;
+	margin: 0px auto;
+	min-height: 300px;
+	padding: 10px 25px;
+}
+
+#scrambleRace h1 {
+	text-align: center;
+	font-weight: normal;
+	margin: 5px;
+}
+
+#scrambleRace h2 {	
+	text-align: center;
+	font-weight: normal;
+}
+
+.hidden {
+	 display: none;
+}
+
+#user {
+	border: 1px solid black;
+	background-color: dgrey;
+}
+
+#rules {
+	width: 30%;
+	float: left;
+}
+
+#gameContainer {
+	margin-left: 30%;
+	padding: 10px;
+}
+
+#nameInput {
+	width: 200px;
+	margin: 0px auto;
+}
