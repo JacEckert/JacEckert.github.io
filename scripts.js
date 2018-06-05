@@ -35,18 +35,32 @@ var playerScore = 0;
 	//or populates user display and removes name input
 function createUser() {
 	player = document.getElementById("user").value;
+	if(player === "" ) {
+		announce("invalid username");
+		return;
+	}
 //database: if username taken: announce; else add
 
-//add user
-database.ref('players/' + player).set({score : 0});
+var data1 = { player : {"score": 0}};
 
+	try {
+		database.ref('players/').child(data1).once('value');
+console.log("exists: fail");
+		announce("invalid username");
+		return;
+
+	} catch(DNE) {
+//add user
+console.log(DNE);
+	database.ref('players/').set(data1);
+console.log("dne: success");
+	}
 
 	document.getElementById("username").innerHTML = player;
 	toggle("username");
 	document.getElementById("start").disabled = false;
 	toggle("nameInput");
 }
-
 //removes start button, shows game, calculates timer and letter bank, and begins timer
 function startGame() {
 	toggle("start");
@@ -111,7 +125,7 @@ function gameTimer() {
 //hides game, updates user data in database, gets user data, and displays outcome
 function endGame() {
 	toggle("gameContainer");
-	database.ref('players/' + player).set({score : 0});
+	database.ref('players/' + player).set({score : playerScore});
 	getResults();
 	toggle("outcome");
 }
@@ -123,6 +137,9 @@ function submitWord() {
 	if (isValid(word) && isNew(word)) {
 		playerScore += word.length;
 		document.getElementById("score").innerHTML = playerScore;
+		database.ref('words/').push().set(word);
+var idkk = database.ref('words/').equalTo(word);
+console.log("after word submit: " + idkk);
 	} else {
 		announce("Invalid word");
 	}
@@ -130,6 +147,8 @@ function submitWord() {
 
 //checks database and returns whether the word already exists or not
 function isNew(word) {
+	var idk = database.ref('words/').equalTo(word);
+console.log("check for word return: " + idk);
 //database: check for word
 	//if it exists, return false
 	//else add word, return true
