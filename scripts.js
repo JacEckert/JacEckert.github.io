@@ -36,31 +36,29 @@ var playerScore = 0;
 function createUser() {
 	player = document.getElementById("user").value;
 	if(player === "" ) {
-		announce("invalid username");
+		announce("Invalid Username: Empty");
 		return;
 	}
-//database: if username taken: announce; else add
+	
+	var playerRef = database.ref('players/' + player);
 
-var data1 = { player : {"score": 0}};
+	playerRef.once("value", snapshot => {
+		//if name 'player' already exists, error and don't continue
+			//else, add player with score: 0, set stage for the game
+		if (snapshot.val()){
+			announce("Invalid Name: Already Exists");
+			return;
+		} else {
+			playerRef.set({score : playerScore});
+			document.getElementById("username").innerHTML = player;
+			document.getElementById("start").disabled = false;
+			toggle("username");
+			toggle("nameInput");
+		}
+	});
 
-	try {
-		database.ref('players/').child(data1).once('value');
-console.log("exists: fail");
-		announce("invalid username");
-		return;
-
-	} catch(DNE) {
-//add user
-console.log(DNE);
-	database.ref('players/').set(data1);
-console.log("dne: success");
-	}
-
-	document.getElementById("username").innerHTML = player;
-	toggle("username");
-	document.getElementById("start").disabled = false;
-	toggle("nameInput");
 }
+
 //removes start button, shows game, calculates timer and letter bank, and begins timer
 function startGame() {
 	toggle("start");
@@ -70,23 +68,42 @@ function startGame() {
 		//and floor to remove insignificant digits
 //database: check if game data exists
 	
+	gameRef = database.ref('gameData/');
+	now = new Date().getTime();
+	
+	gameRef.once("value", snapshot => {
+for(var content in snapshot) {
+console.log("content: " + content);
+}
+		//if game has already started, retrieve data and join game
+		if (snapshot.val()){
+console.log("game already started");
+			//calculate time from startTime and current time
+		} else {
+console.log("game not started");
+//			time = 60;
+//			letterBank = generateBank();
+//			gameRef.set({startTime : now, letterBank: letterBank});
+		}
+	});
+	
 	//if no
 	if(time <= 0) {
 		time = 60;
 		letterBank = generateBank();
 //database: set start time, set bank
-		database.ref('gameData/').set({startTime : new Date().getTime(), letterBank: letterBank});
+		gameRef.set({startTime : now, letterBank: letterBank});
 	} else {
 //database: get time, get Bank
-	///////////////////////////////////////////////	Temporary
-		var startTime = new Date().getTime() + 15000;//	 Testing
-	///////////////////////////////////////////////	  Value
+	///////////////////////////////////	Temporary
+		var startTime = now + 15000; //	 Testing
+	///////////////////////////////////	  Value
 		
-	////////////////////////////////////////////	Temporary
-		letterBank = "SOMETHING";			  //	 Testing
-	////////////////////////////////////////////	  Value
+	/////////////////////////////////	Temporary
+		letterBank = "SOMETHING";  //	 Testing
+	/////////////////////////////////	  Value
 	
-		time = Math.floor((startTime - new Date().getTime())/1000);
+		time = Math.floor((startTime - now)/1000);
 	}
 	document.getElementById("letterBank").innerHTML = letterBank;
 	timerInterval = setInterval("gameTimer()", 1000);
