@@ -69,44 +69,24 @@ function startGame() {
 //database: check if game data exists
 	
 	gameRef = database.ref('gameData/');
-	now = new Date().getTime();
+	var now = new Date().getTime();
 	
 	gameRef.once("value", snapshot => {
-for(var content in snapshot) {
-console.log("content: " + content);
-}
-		//if game has already started, retrieve data and join game
+
+		//if game has already started, retrieve data
+			//else set default time and generate letter bank
 		if (snapshot.val()){
-console.log("game already started");
-			//calculate time from startTime and current time
+			time = Math.floor((now - snapshot.child("startTime").val())/1000);
+			letterBank = snapshot.child("letterBank").val();
 		} else {
-console.log("game not started");
-//			time = 60;
-//			letterBank = generateBank();
-//			gameRef.set({startTime : now, letterBank: letterBank});
+			time = 60;
+			letterBank = generateBank();
+			gameRef.set({startTime : now, letterBank: letterBank});
 		}
+		document.getElementById("letterBank").innerHTML = letterBank;
+		timerInterval = setInterval("gameTimer()", 1000);
 	});
-	
-	//if no
-	if(time <= 0) {
-		time = 60;
-		letterBank = generateBank();
-//database: set start time, set bank
-		gameRef.set({startTime : now, letterBank: letterBank});
-	} else {
-//database: get time, get Bank
-	///////////////////////////////////	Temporary
-		var startTime = now + 15000; //	 Testing
-	///////////////////////////////////	  Value
-		
-	/////////////////////////////////	Temporary
-		letterBank = "SOMETHING";  //	 Testing
-	/////////////////////////////////	  Value
-	
-		time = Math.floor((startTime - now)/1000);
-	}
-	document.getElementById("letterBank").innerHTML = letterBank;
-	timerInterval = setInterval("gameTimer()", 1000);
+
 }
 
 //generates a string of random characters with at least 2 vowels and 2 consonants
