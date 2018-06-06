@@ -22,7 +22,7 @@ var letterBank;
 ////////////////
 // Timer Data //
 ////////////////
-var time = 0;
+var time = 20;							//temporary decrease for faster testing
 var timerInterval;
 
 /////////////////
@@ -45,7 +45,7 @@ function createUser() {
 	playerRef.once("value", snapshot => {
 		//if name 'player' already exists, error and don't continue
 			//else, add player with score: 0, set stage for the game
-		if (snapshot.val()){
+		if(snapshot.val()){
 			announce("Invalid Name: Already Exists");
 			return;
 		} else {
@@ -75,11 +75,10 @@ function startGame() {
 
 		//if game has already started, retrieve data
 			//else set default time and generate letter bank
-		if (snapshot.val()){
-			time = Math.floor((now - snapshot.child("startTime").val())/1000);
+		if(snapshot.val()){
+			time = Math.floor(time-((now - snapshot.child("startTime").val())/1000));
 			letterBank = snapshot.child("letterBank").val();
 		} else {
-			time = 60;
 			letterBank = generateBank();
 			gameRef.set({startTime : now, letterBank: letterBank});
 		}
@@ -123,7 +122,7 @@ function gameTimer() {
 function endGame() {
 	toggle("gameContainer");
 	database.ref('players/' + player).set({score : playerScore});
-	getResults();
+	setTimeout(getResults, 500);
 	toggle("outcome");
 }
 
@@ -170,13 +169,26 @@ function isValid(word) {
 
 //retrieves user data from the database and updates outcome display
 function getResults() {
-	document.getElementById("playerScore").innerHTML += playerScore;
-//database: get user scores
-	//display highest score and username
-	//if same user, display success, else display failure
-	///////////////////////////////////	Temporary
-	announce("Win/Maybe next time"); //	 Testing
-	///////////////////////////////////	  Value
+	database.ref('players/').once("value", snapshot => {
+		var max = 0;
+		var maxCount = "";
+			
+		for(var user in snapshot.val()) {
+			var one = snapshot.val()[user];
+			var userScore = one.score;
+			if(userScore > max) {
+				max = userScore;
+				maxCount = user;
+			}
+		}
+		if(max === playerScore) {
+			announce("You Win!");
+		} else {
+			announce(maxCount + " Wins!");
+		}
+		document.getElementById("winScore").innerHTML += max;
+		document.getElementById("playerScore").innerHTML += playerScore;
+	});
 }
 
 //temporarily shows whatever phrase is passed
