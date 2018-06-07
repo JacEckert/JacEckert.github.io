@@ -5,7 +5,7 @@
 		"letterBank": "asdf"
 	},
 	"players": {
-		"PlayerOne": {"score": 0},
+		"PlayerOne": {"score": 0, "isDone": false},
 		"PlayerTwo": { ... },
 		"PlayerThree": { ... }
 	},
@@ -24,6 +24,7 @@ var letterBank;
 ////////////////
 var time = 20;							//temporary decrease for faster testing
 var timerInterval;
+var endInterval;
 
 /////////////////
 // Player Data //
@@ -49,7 +50,7 @@ function createUser() {
 			announce("Invalid Name: Already Exists");
 			return;
 		} else {
-			playerRef.set({score : playerScore});
+			playerRef.set({score : playerScore, isDone: false});
 			document.getElementById("username").innerHTML = player;
 			document.getElementById("start").disabled = false;
 			toggle("username");
@@ -121,8 +122,9 @@ function gameTimer() {
 //hides game, updates user data in database, gets user data, and displays outcome
 function endGame() {
 	toggle("gameContainer");
-	database.ref('players/' + player).set({score : playerScore});
-	setTimeout(getResults, 500);
+	database.ref('players/' + player).set({score : playerScore, isDone : true});
+	endInterval = setInterval("getResults()", 250);
+	
 	toggle("outcome");
 }
 
@@ -135,7 +137,7 @@ function submitWord() {
 		document.getElementById("score").innerHTML = playerScore;
 		database.ref('words/').push().set(word);
 var idkk = database.ref('words/').equalTo(word);
-console.log("after word submit: " + idkk);
+//console.log("after word submit: " + idkk);
 	} else {
 		announce("Invalid word");
 	}
@@ -144,7 +146,7 @@ console.log("after word submit: " + idkk);
 //checks database and returns whether the word already exists or not
 function isNew(word) {
 	var idk = database.ref('words/').equalTo(word);
-console.log("check for word return: " + idk);
+//console.log("check for word return: " + idk);
 //database: check for word
 	//if it exists, return false
 	//else add word, return true
@@ -174,20 +176,24 @@ function getResults() {
 		var maxCount = "";
 			
 		for(var user in snapshot.val()) {
-			var one = snapshot.val()[user];
-			var userScore = one.score;
+			if(!snapshot.val()[user].isDone) {
+				return;
+			}
+			var userScore = snapshot.val()[user].score;
 			if(userScore > max) {
 				max = userScore;
 				maxCount = user;
 			}
 		}
+		clearInterval(endInterval);
+		document.getElementById("winScore").innerHTML += max;
+		document.getElementById("playerScore").innerHTML += playerScore;
+		
 		if(max === playerScore) {
 			announce("You Win!");
 		} else {
 			announce(maxCount + " Wins!");
 		}
-		document.getElementById("winScore").innerHTML += max;
-		document.getElementById("playerScore").innerHTML += playerScore;
 	});
 }
 
