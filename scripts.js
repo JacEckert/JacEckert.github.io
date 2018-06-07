@@ -24,7 +24,11 @@ var letterBank;
 ////////////////
 var time = 20;							//temporary decrease for faster testing
 var timerInterval;
+var wordInterval;
 var endInterval;
+
+var wordDone = false;
+var wordResult;    //temporary hopefully
 
 /////////////////
 // Player Data //
@@ -130,27 +134,43 @@ function endGame() {
 
 //fetches submitted word, adds points if it passes, or announces a failure
 function submitWord() {
+	wordDone = false;
 	var word = document.getElementById("word").value.toUpperCase();
-
-	if (isValid(word) && isNew(word)) {
-		playerScore += word.length;
-		document.getElementById("score").innerHTML = playerScore;
-		database.ref('words/').push().set(word);
-var idkk = database.ref('words/').equalTo(word);
-//console.log("after word submit: " + idkk);
-	} else {
-		announce("Invalid word");
-	}
+	var one = isValid(word);
+	var two = isNew(word);
+	wordInterval = setInterval(function() {
+		if(wordDone) {
+			clearInterval(wordInterval);
+			if(one && wordResult) {
+				
+				playerScore += word.length;
+				document.getElementById("score").innerHTML = playerScore;
+				database.ref('words/').push().set(word);
+			} else {
+				announce("Invalid word");
+			}
+		}
+	}, 250);
 }
 
 //checks database and returns whether the word already exists or not
 function isNew(word) {
-	var idk = database.ref('words/').equalTo(word);
-//console.log("check for word return: " + idk);
-//database: check for word
-	//if it exists, return false
-	//else add word, return true
-	return true;
+	wordResult = true;
+
+	var wordRef = database.ref('words/');
+	
+	wordRef.once("value", snapshot => {
+		//if words list exists, check for submitted word, return false
+		if(snapshot.val()){
+			for(var key in snapshot.val()) {
+				var newWord = snapshot.val()[key];
+				if(word == newWord) {
+					wordResult = false;
+				}
+			}
+		}
+		wordDone = true;
+	});
 }
 
 //checks if the word uses only letters from the letter bank, and each only once
