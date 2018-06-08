@@ -51,34 +51,6 @@ var wordIsNew;
 
 //checks for existing user, displays error if exists
 	//or populates user display and removes name input
-document.getElementById('user').onkeydown = function(e){
-	if(e.keyCode == 13){
-		player = document.getElementById("user").value;
-		if(player === "" ) {
-			announce("Invalid Username: Empty");
-			return;
-		}
-		
-		var playerRef = database.ref('players/' + player);
-
-		playerRef.once("value", snapshot => {
-			//if name 'player' already exists, error and don't continue
-				//else, add player with score: 0, set stage for the game
-			if(snapshot.val()){
-				announce("Invalid Name: Already Exists");
-				return;
-			} else {
-				playerRef.set({score : playerScore, isDone: false});
-				document.getElementById("username").innerHTML = player;
-				document.getElementById("start").disabled = false;
-				toggle("username");
-				toggle("nameInput");
-			}
-		});
-	}
-};
-	
-
 function createUser() {
 	player = document.getElementById("user").value;
 	if(player === "" ) {
@@ -103,6 +75,12 @@ function createUser() {
 		}
 	});
 }
+//adds createUser to hitting space in the input
+document.getElementById('user').onkeydown = function(e){
+	if(e.keyCode == 13){
+		createUser();
+	}
+};
 
 //removes start button, shows game, calculates timer and letter bank, and begins timer
 function startGame() {
@@ -114,13 +92,19 @@ function startGame() {
 	
 	gameRef.once("value", snapshot => {
 
-		//if game has already started, retrieve data
+		//if game has already started and is ongoing, retrieve data
 			//else set default time and generate letter bank
 		if(snapshot.val()){
 			//date time given in milliseconds, divide the difference of now and the
 				//start time by 1000 to convert to seconds for interval tracking
 			time = Math.floor(time-((now - snapshot.child("startTime").val())/1000));
-			letterBank = snapshot.child("letterBank").val();
+			if(time > 0) {
+				letterBank = snapshot.child("letterBank").val();
+			} else {
+				time = 60;
+				letterBank = generateBank();
+				gameRef.set({startTime : now, letterBank: letterBank});
+			}
 		} else {
 			letterBank = generateBank();
 			gameRef.set({startTime : now, letterBank: letterBank});
@@ -171,48 +155,37 @@ function endGame() {
 }
 
 //fetches submitted word, adds points if it passes, or announces a failure
-document.getElementById('word').onkeydown = function(e){
-	if(e.keyCode == 13){
+function submitWord() {
+	var word = document.getElementById("word").value.toUpperCase();
+	
+	//if word is valid, check if it has already been used, reject if used
+		//else don't bother with database call, reject as invalid
+	if(isValid(word)) {
 		wordDone = false;
-		var word = document.getElementById("word").value.toUpperCase();
 		isNew(word);
-		//attempts to verify word until wordDone returns as true
-			//this signals that wordIsNew has been updated within isNew to be accurate
 		wordInterval = setInterval(function() {
 			if(wordDone) {
 				clearInterval(wordInterval);
-				if(isValid(word) && wordIsNew) {
+				if(wordIsNew) {
+					
 					playerScore += word.length;
 					document.getElementById("score").innerHTML = playerScore;
 					database.ref('words/').push().set(word);
 				} else {
-					announce("Invalid word");
+					announce("Word Already Used");
 				}
 			}
 		}, 250);
+	} else {
+		announce("Invalid word");
+	}
+}
+//adds submitWord to hitting space in the input
+document.getElementById('word').onkeydown = function(e){
+	if(e.keyCode == 13){
+		submitWord();
 	}
 };
-
-
-function submitWord() {
-	wordDone = false;
-	var word = document.getElementById("word").value.toUpperCase();
-	isNew(word);
-	//attempts to verify word until wordDone returns as true
-		//this signals that wordIsNew has been updated within isNew to be accurate
-	wordInterval = setInterval(function() {
-		if(wordDone) {
-			clearInterval(wordInterval);
-			if(isValid(word) && wordIsNew) {
-				playerScore += word.length;
-				document.getElementById("score").innerHTML = playerScore;
-				database.ref('words/').push().set(word);
-			} else {
-				announce("Invalid word");
-			}
-		}
-	}, 250);
-}
 
 //checks database and returns whether the word already exists or not
 function isNew(word) {
