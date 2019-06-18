@@ -26,15 +26,6 @@ body {
 	font-weight: normal;
 }
 
-.hidden {
-	 display: none;
-}
-
-#rules {
-	float: left;
-	width: 30%;
-}
-
 #gameContainer {
 	position: absolute;
 	width: 65%;
@@ -42,6 +33,11 @@ body {
 	padding: 10px;
 	top: 50%;
 	transform: translateY(-50%);
+}
+
+#rules {
+	float: left;
+	width: 30%;
 }
 
 button {
@@ -66,4 +62,8 @@ input {
 	background-color: white;
 	text-align: center;
 	font-size: 25px;
+}
+
+.hidden {
+	 display: none;
 }
