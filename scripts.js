@@ -58,22 +58,38 @@ function createUser() {
 		return;
 	}
 	
-	var playerRef = database.ref('players/' + player);
-
-	playerRef.once("value", snapshot => {
-		//if name 'player' already exists, error and don't continue
-			//else, add player with score: 0, set stage for the game
-		if(snapshot.val()){
-			announce("Invalid Name: Already Exists");
-			return;
-		} else {
-			playerRef.set({score : playerScore, isDone: false});
-			document.getElementById("username").innerHTML = player;
-			document.getElementById("start").disabled = false;
-			toggle("username");
-			toggle("nameInput");
+	var dataExists = false;
+	var gameRef = database.ref('gameData/');
+	gameRef.once("value", snapshot => {
+		if(snapshot.val()) {
+			dataExists = true;
+			var now = new Date().getTime();
+			var start = snapshot.child("startTime").val();
+			var elapsed = Math.floor((now - start)/1000);
+			if(elapsed > 60) {
+				clearData();
+			}
 		}
 	});
+	
+	var playerRef = database.ref('players/' + player);
+	playerRef.once("value", snapshot => {
+		//if name 'player' already exists, error and don't continue
+		if(snapshot.val() && dataExists){
+			announce("Invalid Name: Already Exists");
+			return;
+		}
+		
+		//add player with score: 0, set stage for the game
+		playerRef.set({score : playerScore, isDone: false});
+		document.getElementById("username").innerHTML = player;
+		document.getElementById("start").disabled = false;
+		toggle("username");
+		toggle("nameInput");
+	});
+
+	
+
 }
 //adds createUser to hitting space in the input
 document.getElementById('user').onkeydown = function(e){
@@ -87,7 +103,7 @@ function startGame() {
 	toggle("start");
 	toggle("game");
 	
-	gameRef = database.ref('gameData/');
+	var gameRef = database.ref('gameData/');
 	var now = new Date().getTime();
 	
 	gameRef.once("value", snapshot => {
@@ -167,7 +183,6 @@ function submitWord() {
 			if(wordDone) {
 				clearInterval(wordInterval);
 				if(wordIsNew) {
-					
 					playerScore += word.length;
 					document.getElementById("score").innerHTML = playerScore;
 					database.ref('words/').push().set(word);
@@ -259,16 +274,16 @@ function getResults() {
 
 //removes all content from the database
 function clearData(){
-	database.ref('gameData' ).remove();
-	database.ref('players' ).remove();
-	database.ref('words' ).remove();
+	database.ref('gameData').remove();
+	database.ref('players').remove();
+	database.ref('words').remove();
 }
 
 //temporarily shows whatever phrase is passed
 function announce(word) {
 	document.getElementById("announce").innerHTML = word;
 	toggle("announce");
-	var test = setTimeout(toggle, 2000, "announce");
+	var toggleOff = setTimeout(toggle, 2000, "announce");
 }
 
 //toggles display to hide/show elements by id
